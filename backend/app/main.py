@@ -122,6 +122,10 @@ def sign(fields: dict) -> str:
 # =========================
 class CreateSessionIn(BaseModel):
     product_id: Optional[str] = None
+    amount: Optional[int] = None  # en centavos
+    currency: Optional[str] = None  # "PEN", "USD", etc.
+    description: Optional[str] = None
+    return_url: Optional[str] = None
 
 PRODUCT = {
     "id": "rent-001",
@@ -142,16 +146,24 @@ def get_product():
     return PRODUCT
 
 @app.post("/api/payments/session")
-def create_payment_session(_: CreateSessionIn):
+def create_payment_session(data: CreateSessionIn):
     import uuid
     order_id = f"ORD-{uuid.uuid4().hex[:12].upper()}"
-    amount = PRODUCT["price"]          # centavos
-    currency_num = 604                 # PEN
+    
+    # Usar datos dinámicos o valores por defecto
+    amount = data.amount or PRODUCT["price"]  # centavos
+    currency = data.currency or "PEN"
+    description = data.description or PRODUCT["name"]
+    return_url = data.return_url or RETURN_URL
+    
+    # Convertir moneda a código numérico
+    currency_codes = {"PEN": 604, "USD": 840, "EUR": 978}
+    currency_num = currency_codes.get(currency, 604)  # default PEN
 
     # Guarda orden PENDING
     conn.execute(
         "INSERT INTO orders(order_id, amount, currency, status, idempotency_key, provider_tx, created_at, updated_at) VALUES(?,?,?,?,?,?,?,?)",
-        (order_id, amount, "PEN", "PENDING", uuid.uuid4().hex, None, now_utc_iso(), now_utc_iso()),
+        (order_id, amount, currency, "PENDING", uuid.uuid4().hex, None, now_utc_iso(), now_utc_iso()),
     )
     conn.commit()
 
@@ -168,7 +180,7 @@ def create_payment_session(_: CreateSessionIn):
         "vads_amount": amount,
         "vads_currency": currency_num,
         "vads_order_id": order_id,
-        "vads_url_return": RETURN_URL,   # puedes añadir url_success/refused/cancel si quieres
+        "vads_url_return": return_url,   # URL dinámica o por defecto
     }
     vads["signature"] = sign_vads(vads)
 
