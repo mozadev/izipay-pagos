@@ -1,0 +1,11 @@
+# Reemplaza con tus datos de Izipay (sandbox)
+IZIPAY_MERCHANT=YOUR_MERCHANT_CODE
+IZIPAY_HASH_KEY=YOUR_HASH_KEY
+# URL base del checkout (según modalidad). P.ej.: https://<sandbox-checkout>/pay
+IZIPAY_CHECKOUT_BASE_URL=https://SET-ME
+
+# CORS
+ALLOWED_ORIGINS=http://localhost:5173,https://tu-frontend.vercel.app
+
+# SQLite
+DB_PATH=/tmp/mini_demo.db
