@@ -17,7 +17,7 @@ export default function App() {
       const res = await fetch(`${API_BASE}/api/payments/session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({}) // Mantiene compatibilidad - usa valores por defecto
       })
       const data = await res.json()
 
